@@ -18,4 +18,12 @@ RUN apt-get update; apt-get install gettext-base
 
 EXPOSE 8005
 
+ENV ENKETO_SECRET="odk"
+ENV ENKETO_LESS_SECRET="odk"
+ENV ENKETO_API_KEY="odk"
+ENV REDIS_MAIN_HOST="enketo_redis_main"
+ENV REDIS_MAIN_PORT="6379"
+ENV REDIS_CACHE_HOST="enketo_redis_cache"
+ENV REDIS_CACHE_PORT="6380"
+
 CMD ./start-enketo.sh

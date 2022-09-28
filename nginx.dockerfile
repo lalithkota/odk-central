@@ -5,26 +5,30 @@ RUN files/prebuild/write-version.sh
 RUN files/prebuild/build-frontend.sh
 
 # make sure you have updated *.conf files when upgrading this
-FROM jonasal/nginx-certbot:2.4.1
+FROM nginx:1.23.1
 
 EXPOSE 80
-EXPOSE 443
 
-VOLUME [ "/etc/dh", "/etc/selfsign", "/etc/nginx/conf.d" ]
-ENTRYPOINT [ "/bin/bash", "/scripts/odk-setup.sh" ]
+RUN apt-get update \
+    && apt-get install --no-install-recommends --no-install-suggests -y \
+        openssl \
+        nginx-extras \
+        netcat \
+        lua-zlib \
+    && apt-get remove --purge --auto-remove -y && rm -rf /var/lib/apt/lists/* /etc/apt/sources.list.d/nginx.list
 
-RUN apt-get update; apt-get install -y openssl netcat nginx-extras lua-zlib
+ENV ENKETO_URL='enketo:8005'
+ENV ODK_CENTRAL_BACKEND_URL='service:8383'
 
-RUN mkdir -p /etc/selfsign/live/local/
 COPY files/nginx/odk-setup.sh /scripts/
-
-COPY files/local/customssl/*.pem /etc/customssl/live/local/
 
 COPY files/nginx/default /etc/nginx/sites-enabled/
 COPY files/nginx/inflate_body.lua /usr/share/nginx/
 COPY files/nginx/odk.conf.template /usr/share/nginx/
 COPY files/nginx/common-headers.nginx.conf /usr/share/nginx/
-COPY files/nginx/certbot.conf /usr/share/nginx/
-COPY files/nginx/redirector.conf /usr/share/nginx/
 COPY --from=intermediate client/dist/ /usr/share/nginx/html/
 COPY --from=intermediate /tmp/version.txt /usr/share/nginx/html/
+
+RUN rm /etc/nginx/conf.d/default.conf
+
+CMD [ "/bin/bash", "/scripts/odk-setup.sh" ]

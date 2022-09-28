@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: odk-central-enketo
+  labels:
+    app.kubernetes.io/name: odk-central-enketo
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      protocol: TCP
+      targetPort: {{ .Values.containerPort }}
+  selector:
+    app.kubernetes.io/name: odk-central-enketo

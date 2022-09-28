@@ -12,6 +12,63 @@ This repository serves as an umbrella for the Central project as a whole:
 
 If you are looking for help, please take a look at the [Documentation Website](https://docs.getodk.org/central-intro/). If that doesn't solve your problem, please head over to the [ODK Forum](https://forum.getodk.org) and do a search to see if anybody else has had the same problem. If you've identified a new problem or have a feature request, please post on the forum. We prefer forum posts to GitHub issues because more of the community is on the forum.
 
+Changes compared to upstream
+----------------------------
+- Removed all TLS and certs creation by default.
+- Pre built docker images.
+- Available helm chart to install on kubernetes
+- Other minor changes.
+
+Impacts to installation:
+- All TLS is left to outside the odk installation.
+- Prepare SSL certs for TLS, before installation, on your own.
+- Prepare the Domain name for installation.
+- If using kubernetes, use ingress/loadbalancer for TLS.
+- Or setup another nginx reverse proxy for TLS.
+
+Installing on Kubernetes
+------------------------
+
+- Requires `kubectl` and `helm` utilities installed.
+- Go to [helm](./helm) folder.
+- Configure `values.yaml` according to the installation.
+- Run
+  ```sh
+  ./install.sh
+  ```
+- Exec into the backend pod, and create user (and promote if required).
+  ```sh
+  kubectl exec -it <backend-pod> -- odk-cmd -u <email> user-create
+  kubectl exec -it <backend-pod> -- odk-cmd -u <email> user-promote
+  ```
+- To uninstall, just delete the helm installation of odk-central. Example:
+  ```sh
+  helm -n odk delete odk-central
+  ```
+
+Installing using docker-compose
+-------------------------------
+- Copy paste `.env.template` to `.env`.
+- Configure `.env` according to the installation.
+- Use a command like the following, to generate variable length strings for these variables in `.env`, `ENKETO_SECRET`, `ENKETO_LESS_SECRET`, `ENKETO_API_KEY`.
+  ```sh
+  cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 32 | head -n 1
+  ```
+- Run
+  ```sh
+  docker-compose up -d
+  ```
+- Exec into the service docker to create user (and promote if required).
+  ```sh
+  docker-compose exec -it service -- odk-cmd -u <email> user-create
+  docker-compose exec -it service -- odk-cmd -u <email> user-promote
+  ```
+- ODK Central can now be accessed at http://localhost:8333. Further setup an nginx with SSL, to proxy_pass into the above.
+- To uninstall, run
+  ```sh
+  docker-compose down
+  ```
+
 Contributing
 ============
 

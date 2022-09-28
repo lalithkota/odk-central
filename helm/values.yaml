@@ -1,0 +1,38 @@
+domain: &domain ""
+
+odk-central-mail:
+  enabled: true
+  mailName: *domain
+odk-central-pyxform:
+  enabled: true
+odk-central-enketo:
+  enabled: true
+odk-central-backend:
+  enabled: true
+  domain: *domain
+odk-central-frontend:
+  enabled: true
+
+ingress:
+  enabled: false
+  ingressClassName: ""
+  pathType: ImplementationSpecific
+  apiVersion: ""
+  hostname: *domain
+  annotations: {}
+  tls: false
+  selfSigned: false
+  extraPaths: []
+  extraTls: []
+  secrets: []
+
+istio:
+  enabled: false
+  # existingGateway example values: istio-system/public , istio-system/internal
+  existingGateway: ""
+  # the following newGateway option is only valid if above existingGateway is null/empty
+  newGateway:
+    host: *domain
+    ingressController:
+      # for public, istio: ingressgateway && for internal, istio: ingressgateway-internal
+      istio: ingressgateway

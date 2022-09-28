@@ -1,0 +1,22 @@
+{{- if .Values.istio.enabled  }}
+{{- if not .Values.istio.existingGateway }}
+{{- if .Values.istio.newGateway.host }}
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: odk-central
+  labels:
+    app.kubernetes.io/name: odk-central
+spec:
+  selector:
+    {{ toYaml .Values.istio.newGateway.ingressController | nindent 4 }}
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+      - {{ .Values.istio.newGateway.host }}
+{{- end }}
+{{- end }}
+{{- end }}

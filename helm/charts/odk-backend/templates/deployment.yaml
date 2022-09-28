@@ -1,0 +1,129 @@
+apiVersion: {{ include "common.capabilities.deployment.apiVersion" . }}
+kind: Deployment
+metadata:
+  name: odk-central-backend
+  labels:
+    app.kubernetes.io/name: odk-central-backend
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: odk-central-backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: odk-central-backend
+    spec:
+      {{- if .Values.podSecurityContext.enabled }}
+      securityContext: {{- omit .Values.podSecurityContext "enabled" | toYaml | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: backend
+          image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- if .Values.containerSecurityContext.enabled }}
+          securityContext: {{- omit .Values.containerSecurityContext "enabled" | toYaml | nindent 12 }}
+          {{- end }}
+          {{- if .Values.command }}
+          command: {{- include "common.tplvalues.render" (dict "value" .Values.command "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.args }}
+          args: {{- include "common.tplvalues.render" (dict "value" .Values.args "context" $) | nindent 12 }}
+          {{- end }}
+          env:
+            - name: ENKETO_URL
+              value: {{ .Values.enketo.url }}
+            - name: ENKETO_API_KEY
+              {{- if .Values.enketo.apiKeyValue }}
+              value: {{ .Values.enketo.apiKeyValue }}
+              {{- else }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.enketo.apiKeySecret.name }}
+                  key: {{ .Values.enketo.apiKeySecret.key }}
+              {{- end }}
+            - name: DB_HOST
+              {{- if .Values.postgresql.enabled }}
+              value: odk-central-postgresql
+              {{- else }}
+              value: {{ .Values.externalDb.host }}
+              {{- end }}
+            - name: DB_PORT
+              {{- if .Values.postgresql.enabled }}
+              value: "5432"
+              {{- else }}
+              value: {{ .Values.externalDb.port }}
+              {{- end }}
+            - name: DB_NAME
+              {{- if .Values.postgresql.enabled }}
+              value: {{ .Values.postgresql.auth.database }}
+              {{- else }}
+              value: {{ .Values.externalDb.name }}
+              {{- end }}
+            - name: DB_USER
+              {{- if .Values.postgresql.enabled }}
+              value: {{ .Values.postgresql.auth.username }}
+              {{- else }}
+              value: {{ .Values.externalDb.user }}
+              {{- end }}
+            - name: DB_PASSWORD
+              {{- if .Values.postgresql.enabled }}
+              valueFrom:
+                secretKeyRef:
+                  name: odk-central-postgresql
+                  key: password
+              {{- else }}
+              {{- if .Values.externalDb.passwordValue }}
+              value: {{ .Values.externalDb.passwordValue }}
+              {{- else }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.externalDb.passwordSecret.name }}
+                  key: {{ .Values.externalDb.passwordSecret.key }}
+              {{- end }}
+              {{- end }}
+            - name: PYXFORM_HOST
+              value: {{ .Values.pyxform.host }}
+            - name: PYXFORM_PORT
+              value: {{ .Values.pyxform.port | quote }}
+            - name: SMTP_HOST
+              value: {{ .Values.smtp.host }}
+            - name: SMTP_PORT
+              value: {{ .Values.smtp.port | quote }}
+            - name: DOMAIN
+              value: {{ .Values.domain }}
+            - name: SYSADMIN_EMAIL
+              value: {{ .Values.sysAdminEmail }}
+            - name: HTTPS_PORT
+              value: {{ .Values.httpsPort | quote }}
+            {{- if .Values.extraEnvVars }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.extraEnvVars "context" $) | nindent 12 }}
+            {{- end }}
+          envFrom:
+            {{- if .Values.extraEnvVarsCM }}
+            {{- range .Values.extraEnvVarsCM }}
+            - configMapRef:
+                name: {{ . }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.extraEnvVarsSecret }}
+            {{- range .Values.extraEnvVarsSecret }}
+            - secretRef:
+                name: {{ . }}
+            {{- end }}
+            {{- end }}
+          ports:
+          - name: container-port
+            containerPort: {{ .Values.containerPort }}
+          {{- if .Values.resources }}
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          {{- end }}
+          {{- if .Values.startupProbe.enabled }}
+          startupProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.startupProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.livenessProbe.enabled }}
+          livenessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.livenessProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}
+          {{- if .Values.readinessProbe.enabled }}
+          readinessProbe: {{- include "common.tplvalues.render" (dict "value" (omit .Values.readinessProbe "enabled") "context" $) | nindent 12 }}
+          {{- end }}

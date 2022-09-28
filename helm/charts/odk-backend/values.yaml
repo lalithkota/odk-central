@@ -1,0 +1,109 @@
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 80
+
+image:
+  registry: docker.io
+  repository: lalithkota/odk-central-backend
+  tag: 1.5.3
+  pullPolicy: Always
+
+containerPort: 8383
+
+startupProbe:
+  enabled: true
+  tcpSocket:
+    port: 8383
+  initialDelaySeconds: 0
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 10
+  successThreshold: 1
+
+livenessProbe:
+  enabled: true
+  tcpSocket:
+    port: 8383
+  initialDelaySeconds: 20
+  periodSeconds: 60
+  timeoutSeconds: 5
+  failureThreshold: 2
+  successThreshold: 1
+
+readinessProbe:
+  enabled: true
+  tcpSocket:
+    port: 8383
+  initialDelaySeconds: 0
+  periodSeconds: 20
+  timeoutSeconds: 5
+  failureThreshold: 2
+  successThreshold: 1
+
+command: [ "/bin/bash" ]
+args:
+  - "-c"
+  - "./wait-for-it.sh -s -t 30 ${DB_HOST}:${DB_PORT} -- ./start-odk.sh"
+
+
+resources:
+  limits: {}
+  #   cpu: 200m
+  #   memory: 256Mi
+  requests: {}
+  #   cpu: 100m
+  #   memory: 1500Mi
+
+containerSecurityContext:
+  enabled: false
+  runAsUser: odk
+  runAsNonRoot: true
+
+podSecurityContext:
+  enabled: false
+  fsGroup: 1001
+
+extraEnvVars: []
+
+extraEnvVarsCM: []
+
+extraEnvVarsSecret: []
+
+postgresql:
+  # any other postgres helm chart configuration here
+  enabled: true
+  fullnameOverride: odk-central-postgresql
+  auth:
+    username: bn_odk
+    password: ""
+    database: odk
+    existingSecret: ""
+  architecture: standalone
+
+# domain name of installation
+domain: ""
+# https port of installation
+httpsPort: "443"
+# system admin email
+sysAdminEmail: "admin@example.com"
+# Enketo Url
+enketo:
+  url: "odk-central-enketo"
+  apiKeyValue: ""
+  apiKeySecret:
+    name: "odk-central-enketo"
+    key: "ENKETO_API_KEY"
+pyxform:
+  host: "odk-central-pyxform"
+  port: "80"
+smtp:
+  host: "odk-central-mail"
+  port: "25"
+externalDb:
+  host: "postgresql"
+  port: "5432"
+  database: "odk"
+  user: "postgres"
+  password: ""

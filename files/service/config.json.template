@@ -1,25 +1,26 @@
 {
   "default": {
     "database": {
-      "host": "postgres",
-      "user": "odk",
-      "password": "odk",
-      "database": "odk"
+      "host": "${DB_HOST}",
+      "port": "${DB_PORT}",
+      "user": "${DB_USER}",
+      "password": "${DB_PASSWORD}",
+      "database": "${DB_NAME}"
     },
     "email": {
       "serviceAccount": "no-reply@${DOMAIN}",
       "transport": "smtp",
       "transportOpts": {
-        "host": "mail",
-        "port": 25
+        "host": "${SMTP_HOST}",
+        "port": ${SMTP_PORT}
       }
     },
     "xlsform": {
-      "host": "pyxform",
-      "port": 80
+      "host": "${PYXFORM_HOST}",
+      "port": ${PYXFORM_PORT}
     },
     "enketo": {
-      "url": "http://enketo:8005/-",
+      "url": "http://${ENKETO_URL}/-",
       "apiKey": "${ENKETO_API_KEY}"
     },
     "env": {
