@@ -52,13 +52,13 @@ spec:
               {{- if .Values.postgresql.enabled }}
               value: "5432"
               {{- else }}
-              value: {{ .Values.externalDb.port }}
+              value: {{ .Values.externalDb.port | quote }}
               {{- end }}
             - name: DB_NAME
               {{- if .Values.postgresql.enabled }}
               value: {{ .Values.postgresql.auth.database }}
               {{- else }}
-              value: {{ .Values.externalDb.name }}
+              value: {{ .Values.externalDb.database }}
               {{- end }}
             - name: DB_USER
               {{- if .Values.postgresql.enabled }}
@@ -74,7 +74,7 @@ spec:
                   key: password
               {{- else }}
               {{- if .Values.externalDb.passwordValue }}
-              value: {{ .Values.externalDb.passwordValue }}
+              value: {{ .Values.externalDb.passwordValue | quote }}
               {{- else }}
               valueFrom:
                 secretKeyRef:

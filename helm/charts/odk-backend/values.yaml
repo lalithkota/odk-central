@@ -106,4 +106,8 @@ externalDb:
   port: "5432"
   database: "odk"
   user: "postgres"
-  password: ""
+  # use either passwordValue or passwordSecret
+  passwordValue: ""
+  passwordSecret:
+    name: ""
+    key: ""
